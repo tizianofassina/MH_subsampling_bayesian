@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as stats
 from MH_algorithm import Kernel, MH_bayesian, MH_bayesian_subsampling
 import math
+import matplotlib.pyplot as plt
 
 
 
@@ -59,3 +60,9 @@ kernel = GaussianKernel(1)
 theta_0 = stats.gamma(1,1).rvs(size = (sample_length, 2))
 
 MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
+
+MH_result = np.array(MH_result)
+
+plt.hist(MH_result[-1,:,0], density=True)
+
+plt.show()

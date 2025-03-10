@@ -36,8 +36,8 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
 
         theta_proposition = kernel.sample(theta_k[-1])
 
-        psi = np.log(u * (prior_density(theta_proposition)*kernel.density(theta_proposition, theta_k[-1]))/((prior_density(theta_k[-1])*kernel.density(theta_k[-1], theta_proposition))+1e-10))
-        lambd = np.sum(np.log(likelihood(data, theta_proposition))/np.log(likelihood(data, theta_k[-1]) + 1e-10), axis = 0)
+        psi = np.log(u * (prior_density(theta_proposition)*kernel.density(theta_proposition, theta_k[-1]))/((prior_density(theta_k[-1])*kernel.density(theta_k[-1], theta_proposition))+1e-10)+ 1e-10)
+        lambd = np.sum(np.log(likelihood(data, theta_proposition)+ 1e-10)/np.log(likelihood(data, theta_k[-1]) + 1e-10)+ 1e-10, axis = 0)
 
         bools = lambd>psi
 
