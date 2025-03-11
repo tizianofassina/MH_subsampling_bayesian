@@ -30,21 +30,21 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
     """
     theta_k = [theta_0]
     epsilon = np.ones_like(theta_0)*(1e-10)
+    epsilon_1 = np.ones_like(theta_0[:,0]) * (1e-10)
 
     for i in range(0, n_iter):
 
         u = stats.uniform(0,1).rvs( size = sample_length)
 
         theta_proposition = kernel.sample(theta_k[-1])
-
-        psi = ( np.log(u) + np.log(prior_density(theta_proposition) + 1e-10) +
-        np.log(kernel.density(theta_proposition, theta_k[-1]) + 1e-10) -
-        np.log(prior_density(theta_k[-1]) + 1e-10) -
-        np.log(kernel.density(theta_k[-1], theta_proposition) + 1e-10)
+        psi = ( np.log(u) + np.log(np.maximum(prior_density(theta_proposition), epsilon_1)) +
+        np.log(np.maximum(kernel.density(theta_proposition, theta_k[-1]), epsilon_1)) -
+        np.log(np.maximum(prior_density(theta_k[-1]), epsilon_1)) -
+        np.log( np.maximum(kernel.density(theta_k[-1], theta_proposition) , epsilon_1))
                 )
 
-        lambd = np.sum(np.log(likelihood(data, theta_proposition) + 1e-10) -
-                       np.log(likelihood(data, theta_k[-1]) + 1e-10), axis=0)
+        lambd = np.sum(np.log(np.maximum(likelihood(data, theta_proposition) , np.ones_like(likelihood(data, theta_proposition)) * (1e-10))) -
+                       np.log(np.maximum(likelihood(data, theta_k[-1]),  np.ones_like(likelihood(data, theta_proposition)) * (1e-10))), axis=0)
 
         bools = lambd>psi
 

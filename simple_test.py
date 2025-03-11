@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # generating data
 true_alpha = 12
 true_beta = 5
-n = 80
+n = 600
 data = stats.gamma(true_alpha, scale = true_beta).rvs(n)
 
 
@@ -52,11 +52,11 @@ def likelihood(x, theta):
 
 
 
-sample_length = 3000
+sample_length = 600
 
-n_iter = 7000
+n_iter = 1000
 
-sigma = 1
+sigma = 1/10
 
 kernel = GaussianKernel(sigma)
 
@@ -64,4 +64,5 @@ theta_0 = stats.gamma(7,2).rvs(size = (sample_length, 2))
 
 MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
 
-
+print(np.mean(MH_result[-1,:,0]))
+print(np.mean(MH_result[-1,:,1]))
