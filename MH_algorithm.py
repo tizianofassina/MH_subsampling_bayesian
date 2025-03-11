@@ -29,6 +29,7 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
     Noyau is used for evaluation and for simulation.
     """
     theta_k = [theta_0]
+    epsilon = np.ones_like(theta_0)*(1e-10)
 
     for i in range(0, n_iter):
 
@@ -36,8 +37,14 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
 
         theta_proposition = kernel.sample(theta_k[-1])
 
-        psi = np.log(u * (prior_density(theta_proposition)*kernel.density(theta_proposition, theta_k[-1]))/((prior_density(theta_k[-1])*kernel.density(theta_k[-1], theta_proposition))+1e-10)+ 1e-10)
-        lambd = np.sum(np.log(likelihood(data, theta_proposition)+ 1e-10)/np.log(likelihood(data, theta_k[-1]) + 1e-10)+ 1e-10, axis = 0)
+        psi = ( np.log(u) + np.log(prior_density(theta_proposition) + 1e-10) +
+        np.log(kernel.density(theta_proposition, theta_k[-1]) + 1e-10) -
+        np.log(prior_density(theta_k[-1]) + 1e-10) -
+        np.log(kernel.density(theta_k[-1], theta_proposition) + 1e-10)
+                )
+
+        lambd = np.sum(np.log(likelihood(data, theta_proposition) + 1e-10) -
+                       np.log(likelihood(data, theta_k[-1]) + 1e-10), axis=0)
 
         bools = lambd>psi
 
@@ -46,7 +53,7 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
 
         theta_k.append(theta_new)
 
-    return theta_k
+    return np.array(theta_k)
 
 
 def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.ndarray], np.ndarray], n_iter : int, kernel : Kernel, prior_density : Callable[[np.ndarray], np.ndarray], likelihood : Callable[[np.ndarray], np.ndarray], data : np.ndarray, theta_0 : np.ndarray, delta : np.ndarray) -> list:
@@ -101,4 +108,4 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
 
         theta_k.append(theta_new)
 
-    return theta_k
+    return  np.array(theta_k)

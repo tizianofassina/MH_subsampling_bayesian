@@ -38,31 +38,30 @@ class GaussianKernel(Kernel):
         """
         log_theta_propo = np.log(theta_proposition)
         log_theta_k = np.log(theta_k)
-        density = np.exp(-((log_theta_propo- log_theta_k)**2)/(2*(self.sigma**2)))/(math.sqrt(2*math.pi)*self.sigma*theta_proposition)
+        density = np.exp(-((log_theta_propo - log_theta_k) ** 2) / (2 * self.sigma ** 2)) / (
+                    np.sqrt(2 * np.pi) * self.sigma * theta_proposition)
         return np.prod(density, axis = 1)
 
 #defining likelihood
 def likelihood(x, theta):
     # Takes data of size n x 1 , m x 2
     # The output is of size n x m
-    return stats.gamma.pdf(x[:, np.newaxis], theta[:, 0][ np.newaxis, :], scale= theta[:, 1][np.newaxis, :])
+    alpha = theta[:, 0][ np.newaxis, :]
+    beta = theta[:, 1][np.newaxis, :]
+    return stats.gamma.pdf(x[:, np.newaxis], alpha, scale = beta)
 
 
 
-sample_length = 1000
+sample_length = 3000
 
-n_iter = 100
+n_iter = 7000
 
 sigma = 1
 
-kernel = GaussianKernel(1)
+kernel = GaussianKernel(sigma)
 
-theta_0 = stats.gamma(1,1).rvs(size = (sample_length, 2))
+theta_0 = stats.gamma(7,2).rvs(size = (sample_length, 2))
 
 MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
 
-MH_result = np.array(MH_result)
 
-plt.hist(MH_result[-1,:,0], density=True)
-
-plt.show()
