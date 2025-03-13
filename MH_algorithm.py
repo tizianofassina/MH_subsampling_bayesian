@@ -19,6 +19,23 @@ class Kernel:
         """Compute the density p(theta_proposition | theta_k) (to be implemented by subclasses)."""
         raise NotImplementedError
 
+def likelihood(data : np.ndarray, theta : np.ndarray) -> np.ndarray:
+    """
+    Compute the density function
+    Takes data of size n x 1 , m x k (n data, m possible parameters)
+    The output is of size n x m
+    """
+    raise NotImplementedError
+
+
+def C_data(data, likelihood_function) :
+    def C(theta_1, theta_2) :
+        first = likelihood_function(data, theta_1)
+        second = likelihood_function(data, theta_2)
+        return np.max(np.abs(first - second), axis = 0)
+    return C
+
+
 def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_density : Callable[[np.ndarray], np.ndarray], likelihood : Callable[[np.ndarray], np.ndarray], data : np.ndarray, theta_0 : np.ndarray) -> list:
     """
     The functions return an array of simulation of size sample_length approximating the posterior law.
@@ -29,24 +46,29 @@ def MH_bayesian(sample_length : int, n_iter : int, kernel : Kernel, prior_densit
     Noyau is used for evaluation and for simulation.
     """
     theta_k = [theta_0]
-    epsilon = np.ones_like(theta_0)*(1e-10)
-    epsilon_1 = np.ones_like(theta_0[:,0]) * (1e-10)
+
 
     for i in range(0, n_iter):
 
         u = stats.uniform(0,1).rvs( size = sample_length)
 
         theta_proposition = kernel.sample(theta_k[-1])
-        psi = ( np.log(u) + np.log(np.maximum(prior_density(theta_proposition), epsilon_1)) +
-        np.log(np.maximum(kernel.density(theta_proposition, theta_k[-1]), epsilon_1)) -
-        np.log(np.maximum(prior_density(theta_k[-1]), epsilon_1)) -
-        np.log( np.maximum(kernel.density(theta_k[-1], theta_proposition) , epsilon_1))
-                )
 
-        lambd = np.sum(np.log(np.maximum(likelihood(data, theta_proposition) , np.ones_like(likelihood(data, theta_proposition)) * (1e-10))) -
-                       np.log(np.maximum(likelihood(data, theta_k[-1]),  np.ones_like(likelihood(data, theta_proposition)) * (1e-10))), axis=0)
+        psi = (np.log(u) + np.log(np.maximum(prior_density(theta_k[-1]), 1e-10)) +
+               np.log(np.maximum(kernel.density(theta_proposition, theta_k[-1]), 1e-10)) -
+               np.log(np.maximum(prior_density(theta_proposition), 1e-10)) -
+               np.log(np.maximum(kernel.density(theta_k[-1], theta_proposition), 1e-10))
+               )
 
-        bools = lambd>psi
+
+        lambd = np.sum(np.log(np.maximum(likelihood(data, theta_proposition),
+                                         1e-10)) -
+                       np.log(np.maximum(likelihood(data, theta_k[-1]),
+                                         1e-10)), axis=0)
+
+
+
+        bools = lambd > psi
 
         theta_new = theta_k[-1].copy()
         theta_new[bools] = theta_proposition[bools]
@@ -68,39 +90,67 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
     """
     theta_k = [theta_0]
 
+
     for i in range(0, n_iter):
 
         u = stats.uniform(0,1).rvs( size = sample_length)
 
         theta_proposition = kernel.sample(theta_k[-1])
-
-        psi = np.log(u * (prior_density(theta_proposition)*kernel.density(theta_proposition, theta_k[-1]))/((prior_density(theta_k[-1])*kernel.density(theta_k[-1], theta_proposition))))
-
         n = np.shape(data)[0]
+
+        psi = (np.log(u) + np.log(np.maximum(prior_density(theta_k[-1]), 1e-10)) +
+               np.log(np.maximum(kernel.density(theta_proposition, theta_k[-1]), 1e-10)) -
+               np.log(np.maximum(prior_density(theta_proposition), 1e-10)) -
+               np.log(np.maximum(kernel.density(theta_k[-1], theta_proposition), 1e-10))
+               )*(1/n)
+
+
+
+
         t = 0
         t_look = 0
-        lambd = 0
+        lambd = np.zeros(theta_0.shape[0])
 
         b = 1
         not_done = np.full(np.shape(theta_0)[0], True)
 
-        data_sampled = np.empty((0, data.shape[1]))
+
+        if data.ndim > 1:
+            data_sampled = np.empty(0,data.shape[1:])
+        else:
+            data_sampled = np.empty(0)
+
         data_to_be_sampled = data
 
         while not_done.any():
 
-            sampled_lines = np.random.choice(np.arange(1,np.shape(data_to_be_sampled)[0]), size = b, replace = False)
-            data_sampled = np.vstack(data_sampled, data_to_be_sampled[sampled_lines])
-            data_to_be_sampled = np.delete(data, sampled_lines, axis = 0)
+            sampled_lines = np.random.choice(np.arange(data_to_be_sampled.shape[0]), size=b-t, replace=False)
 
-            lambd[not_done] = (1/b)*(t*lambd[not_done] + np.sum(np.log(likelihood(data_to_be_sampled[sampled_lines], theta_proposition))/np.log(likelihood(data_to_be_sampled[sampled_lines], theta_k[-1])), axis = 0)[not_done])
+            data_sampled = np.concatenate((data_sampled, data_to_be_sampled[sampled_lines]), axis=0)
+
+
+            print(data_to_be_sampled[sampled_lines].shape)
+            lambd[not_done] = (1 / b) * (
+                    t * lambd[not_done]
+                    + np.sum(
+                np.log(np.maximum(likelihood(data_to_be_sampled[sampled_lines], theta_proposition), 1e-10))
+                - np.log(np.maximum(likelihood(data_to_be_sampled[sampled_lines], theta_k[-1]), 1e-10)),
+                axis=0
+            )[not_done]
+            )
+
+
+            c  = 2 * C(theta_proposition,theta_k[-1])*np.sqrt(2*(1-((b-1)/n))*np.log(2/delta[t_look])/(2*b))
+
             t = b
-            c  = 2 * C(theta_proposition,theta_k[-1])*math.sqrt(((1-(t-1/n))*math.log(2/delta[t_look]))/(2*t))
+
             t_look += 1
+
             b = min(n, math.ceil(gamma*t))
 
-
             not_done  = (np.abs(lambd - psi)<c) & (b<=n)
+
+            data_to_be_sampled = np.delete(data_to_be_sampled, sampled_lines, axis=0)
 
         accepted = (lambd>psi)
         theta_new = theta_k[-1].copy()
@@ -108,4 +158,4 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
 
         theta_k.append(theta_new)
 
-    return  np.array(theta_k)
+    return np.array(theta_k)

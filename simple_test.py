@@ -1,15 +1,15 @@
 import numpy as np
 import scipy.stats as stats
-from MH_algorithm import Kernel, MH_bayesian, MH_bayesian_subsampling
-import math
-import matplotlib.pyplot as plt
+from MH_algorithm import Kernel, MH_bayesian, MH_bayesian_subsampling, C_data
+
+
 
 
 
 # generating data
 true_alpha = 12
 true_beta = 5
-n = 600
+n = 800
 data = stats.gamma(true_alpha, scale = true_beta).rvs(n)
 
 
@@ -51,10 +51,12 @@ def likelihood(x, theta):
     return stats.gamma.pdf(x[:, np.newaxis], alpha, scale = beta)
 
 
+C = C_data(data, likelihood)
 
-sample_length = 600
+sample_length = 5000
 
-n_iter = 1000
+n_iter = 5000
+
 
 sigma = 1/10
 
@@ -62,7 +64,18 @@ kernel = GaussianKernel(sigma)
 
 theta_0 = stats.gamma(7,2).rvs(size = (sample_length, 2))
 
-MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
+delta = 0.01
+p = 2
+delta_t = delta*((p-1)/p) / (np.arange(1,n+1)**p)
+
+gamma = 2
+
+
+
+
+
+#MH_result = MH_bayesian_subsampling(sample_length = sample_length,  n_iter = n_iter, C = C, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0, delta = delta_t, gamma = 2)
+MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter,kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
 
 print(np.mean(MH_result[-1,:,0]))
 print(np.mean(MH_result[-1,:,1]))
