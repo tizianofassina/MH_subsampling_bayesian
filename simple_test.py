@@ -53,9 +53,9 @@ def likelihood(x, theta):
 
 C = C_data(data, likelihood)
 
-sample_length = 5000
+sample_length = 50
 
-n_iter = 5000
+n_iter = 50
 
 
 sigma = 1/10
