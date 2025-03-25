@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as stats
-from MH_algorithm import Kernel, MH_bayesian, MH_bayesian_subsampling, C_data
-
+from mo_MH_algorithm_improved import Kernel, MH_bayesian, MH_bayesian_subsampling, C_data
+import matplotlib.pyplot as plt
 
 
 
@@ -75,7 +75,9 @@ gamma = 2
 
 
 #MH_result = MH_bayesian_subsampling(sample_length = sample_length,  n_iter = n_iter, C = C, kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0, delta = delta_t, gamma = 2)
-MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter,kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
+#MH_result = MH_bayesian(sample_length = sample_length,  n_iter = n_iter,kernel = kernel, prior_density = prior_density, likelihood = likelihood, data = data, theta_0 = theta_0)
 
-print(np.mean(MH_result[-1,:,0]))
-print(np.mean(MH_result[-1,:,1]))
+
+#print(np.mean(MH_result[-1,:,0]))
+#print(np.mean(MH_result[-1,:,1]))
+

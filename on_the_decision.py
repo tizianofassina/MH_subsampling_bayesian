@@ -51,16 +51,21 @@ proba_cond = proba_conditional(numbers = data, epsilon = epsilon, t = t, num_sam
 proba = np.tile(proba, (a.shape[0], 1))
 X, Y = np.meshgrid(epsilon, a)
 
-fig = plt.figure(figsize=(15, 10))
-ax = fig.add_subplot(111, projection='3d')
+fig = plt.figure(figsize=(15, 7))
 
-ax.plot_surface(X, Y, proba, cmap='viridis', alpha=0.9, label="Proba")
+ax1 = fig.add_subplot(121, projection='3d')
+ax1.plot_surface(X, Y, proba, cmap='viridis', alpha=0.9)
+ax1.set_title("Probability Surface")
+ax1.set_xlabel(r"$\epsilon$")
+ax1.set_ylabel('a')
+ax1.set_zlabel("Probability")
 
-ax.plot_surface(X, Y, proba_cond, cmap='inferno', alpha=0.5, label="Proba Conditional")
+ax2 = fig.add_subplot(122, projection='3d')
+ax2.plot_surface(X, Y, proba_cond, cmap='inferno', alpha=0.5)
+ax2.set_title("Conditional Probability Surface")
+ax2.set_xlabel(r"$\epsilon$")
+ax2.set_ylabel('a')
+ax2.set_zlabel("Conditional Probability")
 
-ax.set_xlabel('Epsilon')
-ax.set_ylabel('A')
-ax.set_zlabel('Proba')
-ax.set_title('Confronto tra la superficie proba e proba_conditional')
-
+plt.tight_layout()
 plt.show()

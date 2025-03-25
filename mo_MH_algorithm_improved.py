@@ -104,7 +104,7 @@ def MH_bayesian(sample_length, n_iter, kernel, prior_density, likelihood, data, 
     n_burnin = int(burnin * n_iter)
     theta_k = [theta_0]
     acceptance_rate = 0
-    
+
     # Store mean values for plotting
     mean_values = []
     std_values = []
@@ -126,8 +126,10 @@ def MH_bayesian(sample_length, n_iter, kernel, prior_density, likelihood, data, 
 
         # Accept or reject
         accepted = lambd > psi
+
         acceptance_rate += np.mean(accepted) / n_iter
-        
+
+
         # Update chain
         theta_new = theta_k[-1].copy()
         theta_new[accepted] = theta_proposition[accepted]
@@ -136,7 +138,7 @@ def MH_bayesian(sample_length, n_iter, kernel, prior_density, likelihood, data, 
         # Store current means
         mean_values.append(np.mean(theta_new[:, 0]))
         std_values.append(np.mean(theta_new[:, 1]))
-        
+
         # Print progress
         if (i+1) % 100 == 0:
             print(f"MH Standard - Iteration {i+1}/{n_iter}")
