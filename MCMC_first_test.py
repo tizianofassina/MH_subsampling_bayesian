@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # Import functions from MH_algorithm_improved.py
-from MH_algorithm_improved import NormalParamsKernel, C_data, MH_bayesian, MH_bayesian_subsampling
+from MH_algorithm import NormalParamsKernel, C_data, MH_bayesian, MH_bayesian_subsampling
 
 def create_mcmc_interactive_plots(MH_result, MH_subsample_result, mh_mu_values, mh_sigma_values, 
                                sub_mu_values, sub_sigma_values, samples_used, true_mu, true_sigma):

@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.stats as stats
-from mo_MH_algorithm_improved import Kernel, MH_bayesian, MH_bayesian_subsampling, C_data
+from MH_algorithm import Kernel, MH_bayesian, MH_bayesian_subsampling, C_data
 import matplotlib.pyplot as plt
 
 
