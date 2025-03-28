@@ -4,8 +4,48 @@ import time
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Import functions from MH_algorithm_improved.py
-from MH_algorithm import NormalParamsKernel, C_data, MH_bayesian, MH_bayesian_subsampling
+from MH_algorithm_not_working import Kernel, C_data, MH_bayesian, MH_bayesian_subsampling
+
+
+class NormalParamsKernel(Kernel):
+    def __init__(self, sigma_mu, sigma_std):
+        """
+        Mixed kernel for normal distribution parameters:
+        - Random walk in real space for mean
+        - Random walk in log space for standard deviation
+        """
+        super().__init__(sigma_mu=sigma_mu, sigma_std=sigma_std)
+        self.sigma_mu = sigma_mu
+        self.sigma_std = sigma_std
+
+    def sample(self, theta):
+        """Generate new sample."""
+        # theta[:, 0] is the mean, theta[:, 1] is the standard deviation
+        new_theta = theta.copy()
+
+        # Random walk for mean
+        new_theta[:, 0] = theta[:, 0] + stats.norm().rvs(size=theta.shape[0]) * self.sigma_mu
+
+        # Log-random walk for std dev
+        log_std = np.log(theta[:, 1])
+        new_log_std = log_std + stats.norm().rvs(size=theta.shape[0]) * self.sigma_std
+        new_theta[:, 1] = np.exp(new_log_std)
+
+        return new_theta
+
+    def density(self, theta_proposition, theta_k):
+        """Compute the density of the proposal."""
+        # Density for mean component (normal)
+        density_mu = stats.norm(theta_k[:, 0], self.sigma_mu).pdf(theta_proposition[:, 0])
+
+        # Density for std dev component (log-normal)
+        log_std_k = np.log(theta_k[:, 1])
+        log_std_proposition = np.log(theta_proposition[:, 1])
+        # Include Jacobian term for the log transformation
+        density_std = stats.norm(log_std_k, self.sigma_std).pdf(log_std_proposition) / theta_proposition[:, 1]
+
+        return density_mu * density_std
+
 
 def create_mcmc_interactive_plots(MH_result, MH_subsample_result, mh_mu_values, mh_sigma_values, 
                                sub_mu_values, sub_sigma_values, samples_used, true_mu, true_sigma):
