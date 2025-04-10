@@ -28,7 +28,7 @@ def likelihood(data : np.ndarray, theta : np.ndarray) -> np.ndarray:
     raise NotImplementedError
 
 
-def C_data(data, likelihood_function) :
+def C_data(data : np.ndarray, likelihood_function : Callable[[np.ndarray], np.ndarray]) :
     def C(theta_1, theta_2) :
         first = likelihood_function(data, theta_1)
         second = likelihood_function(data, theta_2)
@@ -120,6 +120,10 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
 
         data_to_be_sampled = data
 
+
+        #subsampling step
+        # We use not_done vector to change just the chains that don't match yet the condition
+
         while not_done.any():
 
             sampled_lines = np.random.choice(np.arange(data_to_be_sampled.shape[0]), size=b-t, replace=False)
@@ -127,7 +131,7 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
             data_sampled = np.concatenate((data_sampled, data_to_be_sampled[sampled_lines]), axis=0)
             used_data[not_done] += b-t
 
-            #print("a", data_to_be_sampled[sampled_lines].shape)
+
             lambd[not_done] = (1 / b) * (
                     t * lambd[not_done]
                     + np.sum(
@@ -149,6 +153,8 @@ def MH_bayesian_subsampling(sample_length : int, gamma : float, C: Callable[[np.
             not_done  = (np.abs(lambd - psi)<c) & (b<=n)
 
             data_to_be_sampled = np.delete(data_to_be_sampled, sampled_lines, axis=0)
+
+        # The acceptance rejection step
 
         accepted = (lambd>psi)
         theta_new = theta_k[-1].copy()

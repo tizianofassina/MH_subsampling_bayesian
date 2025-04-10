@@ -1,14 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
+'''
+In this script we present an evalutation of the normal and conditional probabilities
+introduced in the third part of the associated file.
+This script only serve to plot the difference of the two probabilities for different values of a and x.
+'''
 
 random_numbers = np.random.exponential(scale=2, size=200)
 
 mean = random_numbers.mean()
 
 
-def proba(numbers, epsilon, t, num_samples) :
+def proba(numbers, epsilon, t, num_samples):
+    """
+    This is a MC estimator of the probability of the non conditional event
+    """
     sampled_lines = np.array([np.random.choice(np.arange(numbers.shape[0]), size= t, replace=False) for _ in range(num_samples)])
     means = np.mean(numbers[sampled_lines], axis = 1)
     A = np.mean(
@@ -18,6 +24,9 @@ def proba(numbers, epsilon, t, num_samples) :
 
 
 def proba_conditional(numbers, epsilon, t, num_samples, a):
+    """
+    This is a MC estimator of the probability of the conditional event
+    """
     sampled_lines = np.array(
         [np.random.choice(np.arange(numbers.shape[0]), size=t, replace=False) for _ in range(num_samples)])
 
@@ -34,13 +43,14 @@ def proba_conditional(numbers, epsilon, t, num_samples, a):
 
     return A / B
 
+#We take a random example dataset x_1,...,x_n sampled uniformly
 data = np.random.uniform(low=0.0, high=1.0, size=300)*200
 
 t = 15
 
 mean = data.mean()
 
-a  = np.arange(mean - 30, mean + 30, 0.1)
+a = np.arange(mean - 30, mean + 30, 0.1)
 
 epsilon = np.arange(0.2, 20., 0.1)
 
