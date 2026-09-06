@@ -34,11 +34,6 @@ when $n$ is large.
 
 The subsampling sampler replaces the full average $\Lambda_n$ by a Monte Carlo
 estimate computed on a subset of the data drawn **without replacement**,
-
-$$
-\Lambda_t^{*}(\theta,\theta') = \frac{1}{t}\sum_{i=1}^{t}\log\frac{p(x_i^{*}\mid\theta')}{p(x_i^{*}\mid\theta)},
-$$
-
 and decides whether the acceptance test $\Lambda_n>\psi$ holds **without looking at
 all the data**. The estimate is surrounded by a concentration bound: for a tolerance
 level $\delta_t$,
